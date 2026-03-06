@@ -3,48 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Family Command Center - Aotea</title>
+    <script src="https://cdn.jsdelivr.net/npm/publicalbum@latest/embed-ui.min.js" async></script>
     <style>
         :root { --bg: #050505; --card: #121212; --text: #e0e0e0; --accent: #00d4ff; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #left { width: 45%; background: #000; position: relative; border-right: 1px solid #222; }
-        #left img { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: opacity 1.5s; opacity: 1; }
+        /* LEFT: Google Photos Container */
+        #left { width: 45%; background: #000; border-right: 1px solid #222; overflow: hidden; }
+        .pa-carousel-widget { height: 100vh !important; width: 100% !important; }
 
+        /* RIGHT: Info Panel */
         #right { width: 55%; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; }
         #clock { font-size: 75px; font-weight: bold; margin: 0; line-height: 1; }
         #date { color: var(--accent); font-size: 22px; margin-top: 5px; }
 
         .box { background: var(--card); border-radius: 15px; padding: 20px; border: 1px solid #222; }
-        
         #weather-info { display: flex; align-items: center; gap: 20px; }
         .temp { font-size: 42px; font-weight: bold; color: var(--accent); }
 
-        #todo-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 65%; }
-        .add-btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        ul { list-style: none; padding: 0; margin-top: 15px; max-height: 120px; overflow-y: auto; }
+        #todo-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 60%; }
+        button.add-btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        ul { list-style: none; padding: 0; margin-top: 15px; max-height: 150px; overflow-y: auto; }
         li { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #222; }
 
         #cal-box { flex-grow: 1; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; border-radius: 10px; filter: invert(90%) hue-rotate(180deg) brightness(1.1); }
 
-        /* FLOATING FULLSCREEN BUTTON */
-        #fs-btn {
-            position: fixed; bottom: 20px; right: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #333; color: #888;
-            padding: 10px 15px; border-radius: 50px;
-            cursor: pointer; font-size: 12px; transition: 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        #fs-btn:hover { background: var(--accent); color: black; border-color: var(--accent); }
+        #fs-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: #888; padding: 10px 15px; border-radius: 50px; cursor: pointer; font-size: 11px; backdrop-filter: blur(5px); }
     </style>
 </head>
 <body>
 
 <div id="left">
-    <src="https://cdn.jsdelivr.net/npm/publicalbum@latest/embed-ui.min.js" id="slideshow">
+    <div class="pa-carousel-widget" 
+         data-link="PASTE_YOUR_GOOGLE_PHOTOS_LINK_HERE" 
+         data-title="Family Photos" 
+         data-delay="20" 
+         data-autorepeat="true" 
+         style="display:none;">
+    </div>
 </div>
 
 <div id="right">
@@ -66,23 +64,20 @@
     </div>
 
     <div class="box">
-        <h3 style="margin: 0 0 15px 0; font-size: 18px;">Family Tasks</h3>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="todo-input" placeholder="Enter a task...">
-            <button class="add-btn" onclick="addTodo()">Add</button>
-        </div>
+        <h3 style="margin:0 0 10px 0">Family Tasks</h3>
+        <input type="text" id="todo-input" placeholder="New task...">
+        <button class="add-btn" onclick="addTodo()">Add</button>
         <ul id="todo-list"></ul>
     </div>
 
     <div class="box" id="cal-box">
-        <iframe src="https://calendar.google.com/calendar/embed?src=family10919597311643927691%40group.calendar.google.com&ctz=Pacific%2FAuckland"></iframe>
+        <iframe src="https://calendar.google.com/calendar/embed?mode=AGENDA&showTitle=0&showNav=0&showPrint=0&showTabs=0&showCalendars=0&src=en.usa%23holiday%40group.v.calendar.google.com"></iframe>
     </div>
 </div>
 
 <button id="fs-btn" onclick="toggleFS()">⛶ FULLSCREEN</button>
 
 <script>
-    // 1. Clock
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -90,7 +85,6 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
-    // 2. Aotea Weather
     async function getWeather() {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-41.13&longitude=174.85&current_weather=true`);
@@ -102,7 +96,6 @@
     }
     getWeather(); setInterval(getWeather, 600000);
 
-    // 3. Tasks
     let chores = JSON.parse(localStorage.getItem('family_tasks')) || [];
     function renderTasks() {
         const list = document.getElementById('todo-list');
@@ -116,18 +109,9 @@
     function removeTask(i) { chores.splice(i, 1); renderTasks(); }
     renderTasks();
 
-    // 4. Photos
-    const photos = ["https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1000", "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?w=1000"];
-    let photoIdx = 0;
-    setInterval(() => {
-        photoIdx = (photoIdx + 1) % photos.length;
-        document.getElementById('slideshow').src = photos[photoIdx];
-    }, 30000);
-
-    // 5. FULLSCREEN LOGIC
     function toggleFS() {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(e => console.log(e));
+            document.documentElement.requestFullscreen();
             document.getElementById('fs-btn').textContent = "✕ EXIT";
         } else {
             document.exitFullscreen();
@@ -137,6 +121,3 @@
 </script>
 </body>
 </html>
-
-
-
