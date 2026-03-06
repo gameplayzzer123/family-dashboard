@@ -3,73 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <title>Family Command Center - Aotea</title>
-    <script src="https://cdn.jsdelivr.net/npm/publicalbum@latest/embed-ui.min.js" async></script>
     <style>
         :root { --bg: #050505; --card: #121212; --text: #e0e0e0; --accent: #00d4ff; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* LEFT: Google Photos Container */
-        #left { width: 45%; background: #000; border-right: 1px solid #222; overflow: hidden; }
-        .pa-carousel-widget { height: 100vh !important; width: 100% !important; }
+        /* LEFT SIDE: The Photos */
+        #left { width: 45%; background: #000; position: relative; border-right: 1px solid #222; }
+        #left img { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: opacity 1.5s; opacity: 1; }
 
-        /* RIGHT: Info Panel */
+        /* RIGHT SIDE: The Info */
         #right { width: 55%; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        #clock { font-size: 75px; font-weight: bold; margin: 0; line-height: 1; }
-        #date { color: var(--accent); font-size: 22px; margin-top: 5px; }
+        #clock { font-size: 80px; font-weight: bold; margin: 0; line-height: 1; letter-spacing: -2px; }
+        #date { color: var(--accent); font-size: 22px; margin-top: 5px; margin-bottom: 10px; }
 
         .box { background: var(--card); border-radius: 15px; padding: 20px; border: 1px solid #222; }
-        #weather-info { display: flex; align-items: center; gap: 20px; }
         .temp { font-size: 42px; font-weight: bold; color: var(--accent); }
-
-        #todo-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 60%; }
-        button.add-btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        ul { list-style: none; padding: 0; margin-top: 15px; max-height: 150px; overflow-y: auto; }
-        li { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #222; }
+        
+        #todo-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 65%; outline: none; }
+        .add-btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: black; }
+        ul { list-style: none; padding: 0; margin-top: 15px; max-height: 140px; overflow-y: auto; }
+        li { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #222; align-items: center; }
 
         #cal-box { flex-grow: 1; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; border-radius: 10px; filter: invert(90%) hue-rotate(180deg) brightness(1.1); }
 
-        #fs-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: #888; padding: 10px 15px; border-radius: 50px; cursor: pointer; font-size: 11px; backdrop-filter: blur(5px); }
+        #fs-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.05); border: 1px solid #333; color: #888; padding: 10px 15px; border-radius: 50px; cursor: pointer; font-size: 11px; backdrop-filter: blur(5px); }
+        #fs-btn:hover { background: var(--accent); color: black; }
     </style>
 </head>
 <body>
 
 <div id="left">
-    <div class="pa-carousel-widget" 
-         data-link="https://photos.app.goo.gl/nQVA1p5Nv8LoidBn9" 
-         data-title="Family Photos" 
-         data-delay="10" 
-         data-autorepeat="true" 
-         data-background-color="black"
-         style="display:none;">
-        <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1000" style="width:100%; height:100%; object-fit:cover; opacity:0.3;">
-        <p style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#444;">Connecting to Google Photos...</p>
-    </div>
+    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1000" id="slideshow">
 </div>
 
 <div id="right">
-    <div class="header">
-        <div>
-            <div id="clock">00:00</div>
-            <div id="date">Loading...</div>
-        </div>
-    </div>
+    <div id="clock">00:00</div>
+    <div id="date">Loading...</div>
 
     <div class="box">
-        <div id="weather-info">
+        <div style="display: flex; align-items: center; gap: 20px;">
             <span id="w-icon" style="font-size: 40px;">🌤️</span>
             <div>
                 <div class="temp" id="weather-temp">--°C</div>
-                <div class="desc">Aotea, Wellington</div>
+                <div style="color:#888; font-size: 14px;">Aotea, Wellington</div>
             </div>
         </div>
     </div>
 
     <div class="box">
-        <h3 style="margin:0 0 10px 0">Family Tasks</h3>
-        <input type="text" id="todo-input" placeholder="New task...">
-        <button class="add-btn" onclick="addTodo()">Add</button>
+        <h3 style="margin:0 0 10px 0; font-size: 16px; color: #888;">Family Tasks</h3>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="todo-input" placeholder="What needs doing?">
+            <button class="add-btn" onclick="addTodo()">Add</button>
+        </div>
         <ul id="todo-list"></ul>
     </div>
 
@@ -81,6 +68,35 @@
 <button id="fs-btn" onclick="toggleFS()">⛶ FULLSCREEN</button>
 
 <script>
+    // 1. PHOTO LOGIC
+    // PASTE YOUR LONG GOOGLE IMAGE LINKS IN THE QUOTES BELOW
+    const myPhotos = [
+        "https://lh3.googleusercontent.com/pw/AP1GczOdTx4FyRG-cJPKAH_IEmsKTPfDDIAnnJoUbKNi57sqzC0WFDCVWwtKbilCGBkieBTNSp2ZcmLAMRNSKihTCB6oDqmkp9VCOhHD4PsF-EaNpdIZqq5_FH2HmfaM4KqGOY_yxIKoeKi_tt35o1Xa8HunUA=w796-h599-s-no-gm?authuser=0",
+        "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?w=1000"
+    ];
+
+    let pIdx = 0;
+    const imgElement = document.getElementById('slideshow');
+    
+    // This stops Google from blocking the images!
+    imgElement.setAttribute("referrerpolicy", "no-referrer");
+
+    function rotatePhotos() {
+        if (myPhotos.length === 0) return;
+        pIdx = (pIdx + 1) % myPhotos.length;
+        
+        imgElement.style.opacity = 0; 
+        setTimeout(() => {
+            imgElement.src = myPhotos[pIdx];
+            imgElement.style.opacity = 1;
+        }, 1500);
+    }
+    
+    // Skip to next if a photo link fails
+    imgElement.onerror = () => rotatePhotos();
+    setInterval(rotatePhotos, 25000);
+
+    // 2. CLOCK
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -88,6 +104,7 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
+    // 3. WEATHER (Aotea/Porirua)
     async function getWeather() {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-41.13&longitude=174.85&current_weather=true`);
@@ -99,10 +116,11 @@
     }
     getWeather(); setInterval(getWeather, 600000);
 
+    // 4. TASKS
     let chores = JSON.parse(localStorage.getItem('family_tasks')) || [];
     function renderTasks() {
         const list = document.getElementById('todo-list');
-        list.innerHTML = chores.map((t, i) => `<li>${t} <span style="color:red;cursor:pointer" onclick="removeTask(${i})">✕</span></li>`).join('');
+        list.innerHTML = chores.map((t, i) => `<li>${t} <span style="color:#ff4d4d;cursor:pointer;font-weight:bold" onclick="removeTask(${i})">✕</span></li>`).join('');
         localStorage.setItem('family_tasks', JSON.stringify(chores));
     }
     function addTodo() {
@@ -112,9 +130,10 @@
     function removeTask(i) { chores.splice(i, 1); renderTasks(); }
     renderTasks();
 
+    // 5. FULLSCREEN
     function toggleFS() {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
             document.getElementById('fs-btn').textContent = "✕ EXIT";
         } else {
             document.exitFullscreen();
@@ -124,5 +143,3 @@
 </script>
 </body>
 </html>
-
-
