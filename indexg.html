@@ -15,22 +15,30 @@
         .header { display: flex; justify-content: space-between; align-items: center; }
         #clock { font-size: 75px; font-weight: bold; margin: 0; line-height: 1; }
         #date { color: var(--accent); font-size: 22px; margin-top: 5px; }
-        .dots { cursor: pointer; font-size: 30px; color: #444; }
 
         .box { background: var(--card); border-radius: 15px; padding: 20px; border: 1px solid #222; }
         
         #weather-info { display: flex; align-items: center; gap: 20px; }
         .temp { font-size: 42px; font-weight: bold; color: var(--accent); }
-        .desc { font-size: 20px; color: #888; }
 
         #todo-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 65%; }
         .add-btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         ul { list-style: none; padding: 0; margin-top: 15px; max-height: 120px; overflow-y: auto; }
-        li { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
-        .del-btn { color: #ff4d4d; cursor: pointer; font-weight: bold; }
+        li { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #222; }
 
         #cal-box { flex-grow: 1; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; border-radius: 10px; filter: invert(90%) hue-rotate(180deg) brightness(1.1); }
+
+        /* FLOATING FULLSCREEN BUTTON */
+        #fs-btn {
+            position: fixed; bottom: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333; color: #888;
+            padding: 10px 15px; border-radius: 50px;
+            cursor: pointer; font-size: 12px; transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        #fs-btn:hover { background: var(--accent); color: black; border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -45,7 +53,6 @@
             <div id="clock">00:00</div>
             <div id="date">Loading...</div>
         </div>
-        <div class="dots" onclick="toggleMenu()">⋮</div>
     </div>
 
     <div class="box">
@@ -72,8 +79,10 @@
     </div>
 </div>
 
+<button id="fs-btn" onclick="toggleFS()">⛶ FULLSCREEN</button>
+
 <script>
-    // 1. Precise Clock
+    // 1. Clock
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -81,26 +90,23 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
-    // 2. Weather Logic (Aotea/Wellington)
+    // 2. Aotea Weather
     async function getWeather() {
         try {
-            const lat = -41.13; const lon = 174.85;
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-41.13&longitude=174.85&current_weather=true`);
             const data = await res.json();
             document.getElementById('weather-temp').textContent = Math.round(data.current_weather.temperature) + "°C";
-            
-            // Basic icon logic
             const code = data.current_weather.weathercode;
             document.getElementById('w-icon').textContent = (code < 3) ? "☀️" : (code < 50) ? "☁️" : "🌧️";
         } catch (e) { document.getElementById('weather-temp').textContent = "??°C"; }
     }
     getWeather(); setInterval(getWeather, 600000);
 
-    // 3. To-Do List (Persistent)
+    // 3. Tasks
     let chores = JSON.parse(localStorage.getItem('family_tasks')) || [];
     function renderTasks() {
         const list = document.getElementById('todo-list');
-        list.innerHTML = chores.map((t, i) => `<li>${t} <span class="del-btn" onclick="removeTask(${i})">✕</span></li>`).join('');
+        list.innerHTML = chores.map((t, i) => `<li>${t} <span style="color:red;cursor:pointer" onclick="removeTask(${i})">✕</span></li>`).join('');
         localStorage.setItem('family_tasks', JSON.stringify(chores));
     }
     function addTodo() {
@@ -110,31 +116,24 @@
     function removeTask(i) { chores.splice(i, 1); renderTasks(); }
     renderTasks();
 
-    // 4. Photo Slideshow with "Broken Link" Protection
-    const photos = [
-        "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1000",
-        "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?w=1000",
-        "https://images.unsplash.com/photo-1502086223501-7ea244b05ffb?w=1000"
-    ];
+    // 4. Photos
+    const photos = ["https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1000", "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?w=1000"];
     let photoIdx = 0;
-    const imgElement = document.getElementById('slideshow');
-
-    function nextPhoto() {
+    setInterval(() => {
         photoIdx = (photoIdx + 1) % photos.length;
-        imgElement.style.opacity = 0;
-        setTimeout(() => {
-            imgElement.src = photos[photoIdx];
-            imgElement.style.opacity = 1;
-        }, 1500);
+        document.getElementById('slideshow').src = photos[photoIdx];
+    }, 30000);
+
+    // 5. FULLSCREEN LOGIC
+    function toggleFS() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
+            document.getElementById('fs-btn').textContent = "✕ EXIT";
+        } else {
+            document.exitFullscreen();
+            document.getElementById('fs-btn').textContent = "⛶ FULLSCREEN";
+        }
     }
-
-    // This catches "broken" images and forces the code to move to the next one immediately
-    imgElement.onerror = function() {
-        console.log("Photo failed to load, skipping...");
-        nextPhoto(); 
-    };
-
-    setInterval(nextPhoto, 30000);
 </script>
 </body>
 </html>
